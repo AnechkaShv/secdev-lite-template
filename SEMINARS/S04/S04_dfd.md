@@ -19,8 +19,6 @@
 
 ## Базовый каркас (mermaid)
 
-> Замените названия узлов под свой контекст, добавьте/уберите узлы, подпишите типы данных на рёбрах.
-> **Важно:** границы доверия оформлены как `subgraph` с единым стилем.
 
 ```mermaid
 flowchart LR
@@ -29,22 +27,17 @@ flowchart LR
     U[Клиент / Браузер / Мобильное приложение]
   end
 
-  subgraph Service[Веб-сервис (приложение)]
+  subgraph Service[Веб-сервис]
     A[API Gateway / Auth Controller]
     S[UserService / RBAC Logic]
     D[(PostgreSQL / UserDB)]
-  end
-
-  subgraph External[Внешние провайдеры]
-    X[Email / SMS Provider]
   end
 
   %% --- Основные потоки данных ---
   U -- "JWT/HTTPS [NFR: Security-AuthN, RateLimiting, SessionManagement]" --> A
   A -->|"DTO: credentials/profile [NFR: InputValidation, Privacy/PII]"| S
   S -->|"SQL (users, roles) [NFR: Data-Integrity]"| D
-  S -->|"HTTP (reset password) [NFR: Secrets]"| X
-
+  A -->|"Login [NFR: RateLimiting]"| S
   %% --- Обратные потоки ---
   D -->|"DTO: user/profile"| S
   S -->|"JWT/Response [NFR: AuthN]"| A
