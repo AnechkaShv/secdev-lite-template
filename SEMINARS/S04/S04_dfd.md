@@ -1,4 +1,4 @@
-# S04 - DFD
+# S04 - DFD (шаблон)
 
 Этот файл - **шаблон минимальной DFD** для семинара S04.
 Скопируйте и ведите у себя в репозитории в: `SEMINARS/S04/S04_dfd.md`.
@@ -22,10 +22,6 @@
 > Замените названия узлов под свой контекст, добавьте/уберите узлы, подпишите типы данных на рёбрах.
 > **Важно:** границы доверия оформлены как `subgraph` с единым стилем.
 
-# S04 - DFD
-
-## Data Flow Diagram (уровень сервиса)
-
 ```mermaid
 flowchart LR
   %% --- Trust boundaries ---
@@ -48,7 +44,7 @@ flowchart LR
   %% --- Границы доверия ---
   classDef boundary fill:#f6f6f6,stroke:#999,stroke-width:1px;
   class Internet,Service boundary;
-
+```
 
 ---
 
