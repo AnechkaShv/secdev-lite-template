@@ -29,21 +29,33 @@ flowchart LR
     U[Клиент / Браузер / Мобильное приложение]
   end
 
-  subgraph Service[Веб-сервис]
+  subgraph Service[Веб-сервис (приложение)]
     A[API Gateway / Auth Controller]
     S[UserService / RBAC Logic]
-    D[(UserDB / PostgreSQL)]
+    D[(PostgreSQL / UserDB)]
   end
 
-  %% --- Потоки данных ---
-  U -- "JWT/HTTPS [NFR: Security-AuthN, RateLimiting]" --> A
-  A -->|"DTO / Profile data [NFR: Privacy/PII]"| S
-  S -->|"SQL queries [NFR: Data-Integrity]"| D
-  S -->|"Audit events [NFR: Auditability]"| D
+  subgraph External[Внешние провайдеры]
+    X[Email / SMS Provider]
+  end
+
+  %% --- Основные потоки данных ---
+  U -- "JWT/HTTPS [NFR: Security-AuthN, RateLimiting, SessionManagement]" --> A
+  A -->|"DTO: credentials/profile [NFR: InputValidation, Privacy/PII]"| S
+  S -->|"SQL (users, roles) [NFR: Data-Integrity]"| D
+  S -->|"HTTP (reset password) [NFR: Secrets]"| X
+
+  %% --- Обратные потоки ---
+  D -->|"DTO: user/profile"| S
+  S -->|"JWT/Response [NFR: AuthN]"| A
+  A -->|"JSON Response (PII masked) [NFR: Privacy/PII]"| U
+
+  %% --- Аудит и логирование ---
+  S -->|"audit event [NFR: Auditability]"| D
 
   %% --- Границы доверия ---
   classDef boundary fill:#f6f6f6,stroke:#999,stroke-width:1px;
-  class Internet,Service boundary;
+  class Internet,Service,External boundary;
 ```
 
 ---
