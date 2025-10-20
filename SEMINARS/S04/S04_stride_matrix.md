@@ -50,13 +50,14 @@
 |  Edge: Internet → API         | JWT / public  | S                    | Повтор/подмена токена, reuse истёкшего/украденного JWT | NFR-AuthN, NFR-RateLimit        | JWT TTL+Refresh, rate limit на `/auth/*`  |               |                             |
 | Edge: Internet → API         | JSON   | I | Слабый CORS/утечка через Referrer  | NFR-Privacy/PII, NFR-API-Contract | строгий CORS (origin, методы, заголовки), Referrer-Policy: `no-referrer `                           |
 | Node: API Gateway / Auth Controller | JWT / public | S  | Проброс доверия внутренним сервисам без проверки токена сервиса |NFR-AuthN (service-to-service) | {<br> "title": "Token validation failed",<br> "status": 401,<br> "detail": "JWT token expired at 1672531200",<br> "instance": "/api/users/profile"<br>} | 
-| Node: API Gateway / Auth Controller | Logs | R  | Логи без user/tenant/route | NFR-Observability/Logging | шаблон логов (service, method, path, timestamp)|                             |
-|         |               |                      |             |               |                             |
-|         |               |                      |             |               |                             |
-|         |               |                      |             |               |                             |
-|         |               |                      |             |               |                             |
-|         |               |                      |             |               |                             |
-|         |               |                      |             |               |                             |
+| Node: API Gateway / Auth Controller | Logs | R  | Логи без user/tenant/route | NFR-Observability/Logging |log examples: <br>json <br>{"timestamp":"2024-01-15T10:30:00Z","level":"INFO","correlation_id":"prof-123-abc","service":"api-gateway","method":"PUT","path":"/api/profile","status":200,"latency_ms":45}<br>{"timestamp":"2024-01-15T10:30:00Z","level":"INFO","correlation_id":"prof-123-abc","service":"profile-service","operation":"updateProfile","user_id":"usr-456","duration_ms":32}<br>{"timestamp":"2024-01-15T10:30:01Z","level":"ERROR","correlation_id":"prof-123-abc","service":"profile-service","error":"Validation failed","stack_trace":"..."}|                             |
+| Edge: Service → External API | DTO | I | Передача PII/секретов в query/логи | NFR-Privacy/PII | только в заголовках/теле, redaction логов |
+| Edge: Service → External API | JWT / Response | S | Доверие внешнему без проверки (pinning/issuer) | NFR-AuthN | TLS-pinning (где возможно), проверка CA, валидация ответов |
+| Node: Service | Logs | E | Обход бизнес-контролей (feature-flags/параметры) | NFR-AuthZ/RBAC | серверные гварды, неизменяемые флаги на сервере |
+| Edge: Service → DB        | audit event              |   R                   |Нет отзыв-идентификаторов/idempotency для платёжных/критичных вызовов             | NFR-Audit              | idempotency-key, лог-журнал                            |
+| Edge: Service → DB         | SQL               | T                     | Tampering данных/схемы без целостности            | NFR-Data-Integrity              | строгая проверка схем/подписей, idempotency keys                            |
+| Node: DB | SQL              | D | Долгие запросы/нет индексов | NFR-DoS/Resilience | индексы, лимиты на LIKE %...%, пагинация |
+| Node: DB | SQL | I | PII без маскирования/шифрования/бэкапы открыты | NFR-Privacy/PII | колоночное шифрование/маскирование, контроль доступа к бэкапам |
 
 ---
 
